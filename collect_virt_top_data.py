@@ -15,13 +15,6 @@ import calendar
 import datetime
 import csv
 
-def get_host_name():
-    if socket.gethostname().find('.')>=0:
-        hostname = socket.gethostname()
-    else:
-        hostname = socket.gethostbyaddr(socket.gethostname())[0]
-    return hostname
-
 def get_file_name(string):
     cur_time = time.gmtime()
     filename = str(cur_time.tm_year) + "_" + str(cur_time.tm_mon) + "_" + str(cur_time.tm_mday) + "_" + string + ".csv"
@@ -62,7 +55,6 @@ def parse_each_line(line):
     tokens = line.split()
     if len(tokens) < 8:
         return
-
     if tokens[0] == "virt-top":
         dt1 = datetime.datetime.strptime(tokens[2], "%H:%M:%S").time()
         dt2 = datetime.datetime.combine(datetime.date.today(), dt1)

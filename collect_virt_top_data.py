@@ -16,7 +16,7 @@ import datetime
 import csv
 
 def get_file_name(string):
-    cur_time = time.gmtime()
+    cur_time = time.localtime()
     filename = str(cur_time.tm_year) + "_" + str(cur_time.tm_mon) + "_" + str(cur_time.tm_mday) + "_" + string + ".csv"
     return filename
 
@@ -75,7 +75,7 @@ hostcpus = ""
 # Globals
 # subprocess to start virt-top
 def collect_virt_top_data():
-    virt_top_command = ['virt-top', '-d', '5', '--script', '--stream', '-n', '10']
+    virt_top_command = ['virt-top', '-d', '5', '--script', '--stream']
     virt_top_proc = subprocess.Popen(virt_top_command,stdout=subprocess.PIPE)
     virt_top_output_processing = False
    

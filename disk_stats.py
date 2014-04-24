@@ -7,7 +7,7 @@ import socket
 import subprocess 
 import time
 import csv
-from time import gmtime
+from time import localtime
 
 #Get hostname
 def get_host_name():
@@ -18,7 +18,7 @@ def get_host_name():
     return hostname
 
 def get_file_name(string):
-    cur_time = gmtime()
+    cur_time = localtime()
     filename = str(cur_time.tm_year) + "_" + str(cur_time.tm_mon) + "_" + str(cur_time.tm_mday) + "_" + string + ".csv"
     return filename
 
@@ -39,7 +39,8 @@ def collect_disk_stats():
     lines = out.split('\n')
     for i in range(1, len(lines) - 1):
         stats = lines[i].split(',')
-        log = [timestamp, hostname, stats[0], stats[1], stats[2], stats[3], stats[4], stats[5]]
+     #timestamp, hostname, VirtualMachine,Filesystem,1K-blocks,Used,Available,Use %
+     log = [timestamp, hostname, stats[0], stats[1], stats[2], stats[3], stats[4], stats[5]]
         writeToFile(log)
 
 #Calling code

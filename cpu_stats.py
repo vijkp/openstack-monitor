@@ -55,7 +55,8 @@ def collect_cpu_stats():
         #Getting the CPU utilized time
         out = dom.getCPUStats(True)
         print "Domain:" + dom.name()
-        print dom.info()
+        dominfo = dom.info()
+        print dominfo[3]
         dom_cpu_stats = out[0]
         cputime = dom_cpu_stats['cpu_time']
 
@@ -70,5 +71,7 @@ def collect_cpu_stats():
         #vm-id, timestamp, total-uptime, total-cpu_time, cpu utilization
         line = "{},{},{},{},{}".format(dl.name(), timestamp, uptime, cputime, cpu_util)
         line = line + '\n'
-        logFile.write(line)
+        #logFile.write(line)
 
+if __name__ == "__main__":
+    collect_cpu_stats()

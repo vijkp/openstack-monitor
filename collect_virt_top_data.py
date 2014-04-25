@@ -40,7 +40,7 @@ def save_all_stats(tokens):
     mem_percent = tokens[7]
     vm_time     = tokens[8]
     instance_name = tokens[9]
-    vcpus = 1 # get it from libvirt
+    vcpus = vcpus_dict[instance_name]
     save_to_file([timestamp, hostname, instance_id, instance_name, cpu_percent, vcpus, hostcpus, vm_time], cpufile)
     save_to_file([timestamp, hostname, instance_id, instance_name, mem_percent, hostmem], memfile)
     save_to_file([timestamp, hostname, instance_id, instance_name, rx_bytes, tx_bytes], netfile) 
@@ -72,6 +72,25 @@ hostname = ""
 hostmem  = ""
 hostcpus = ""
 
+# dictionary to hold vcpus info
+vcpus_dict = {}
+
+def get_vcpus_info():
+    #Open connection to libvirt
+    conn = libvirt.openReadOnly(None)
+    if conn == None:
+        print 'Failed to open connection to the hypervisor'
+        sys.exit(1)
+
+    domain_list = conn.listAllDomains()
+    for dl in domain_list:
+        dlname = dl.name()
+        dom = conn.lookupByName(dlname)
+        dominfo = dom.info()
+        dl_vcpus = dominfo[3]
+        vcpus_dict[dlname] = dl_vcpus
+
+
 # Globals
 # subprocess to start virt-top
 def collect_virt_top_data():
@@ -83,8 +102,9 @@ def collect_virt_top_data():
     while True:
         line = virt_top_proc.stdout.readline()
         if line != '':
+            #get vcpus info
+            get_vcpus_info()
             parse_each_line(line)
         else:
             break
-
 

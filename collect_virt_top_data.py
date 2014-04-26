@@ -25,15 +25,37 @@ def save_to_file(outlist, filesuffix):
     output = csv.writer(open(outputfile, 'a+'), delimiter=',', quotechar='|')
     output.writerow(outlist)
 
-def save_to_rrdfile(timestamp, instance_name, statlist, stype):
+def convert_to_bytes(size):
+    size = str(size)
+    if size.endswith("K") or size.endswith("KB"):
+        value = (int(size.split("K")[0]))
+    elif size.endswith("M") or size.endswith("MB"):
+        value = (int(size.split("M")[0]))*1024
+    elif size.endswith("G") or size.endswith("GB"):
+        value = (int(size.split("G")[0]))*1024*1024
+    else:
+        value = float(int(size)/1024)
+    return value
+
+def save_to_rrdfile(ts, instance_name, statlist, stype):
     if stype == "cpu":
-        print time.time()
         rrd_file = str(instance_name+'_'+cpufile+'.rrd')
-        arguments = "{}:{}".format(timestamp, statlist[0])
-        print arguments
-        print instance_name
-        rrdtool.update(rrd_file, arguments)
-   
+        arguments = "{}:{}".format(ts, statlist[0])
+    elif stype == "mem":
+        rrd_file = str(instance_name+'_'+memfile+'.rrd')
+        arguments = "{}:{}".format(ts, statlist[0])
+    elif stype == "diskio":
+        rrd_file = str(instance_name+'_'+diskiofile+'.rrd')
+        arguments = "{}:{}:{}".format(ts, convert_to_bytes(statlist[0]), convert_to_bytes(statlist[1]))
+    elif stype == "net":
+        rrd_file = str(instance_name+'_'+netfile+'.rrd')
+        arguments = "{}:{}:{}".format(ts, convert_to_bytes(statlist[0]), convert_to_bytes(statlist[1]))
+    else:
+        print "error: invalid stat type"
+        exit(1)
+    print arguments
+    print rrd_file
+    rrdtool.update(rrd_file, arguments)
 
 def save_all_stats(tokens):
     # ID S RDRQ WRRQ RXBY TXBY %CPU %MEM   TIME    NAME 
@@ -48,10 +70,13 @@ def save_all_stats(tokens):
     instance_name = tokens[9]
     vcpus = vcpus_dict[instance_name]
     #save_to_file([timestamp, hostname, instance_id, instance_name, cpu_percent, vcpus, hostcpus, vm_time], cpufile)
-    save_to_rrdfile(timestamp, instance_name, cpu_percent, "cpu")
-    save_to_file([timestamp, hostname, instance_id, instance_name, mem_percent, hostmem], memfile)
-    save_to_file([timestamp, hostname, instance_id, instance_name, rx_bytes, tx_bytes], netfile) 
-    save_to_file([timestamp, hostname, instance_id, instance_name, read_queue, write_queue], diskiofile) 
+    #save_to_file([timestamp, hostname, instance_id, instance_name, mem_percent, hostmem], memfile)
+    #save_to_file([timestamp, hostname, instance_id, instance_name, rx_bytes, tx_bytes], netfile) 
+    #save_to_file([timestamp, hostname, instance_id, instance_name, read_queue, write_queue], diskiofile) 
+    save_to_rrdfile(timestamp, instance_name, [cpu_percent], "cpu")
+    save_to_rrdfile(timestamp, instance_name, [mem_percent], "mem")
+    save_to_rrdfile(timestamp, instance_name, [rx_bytes, tx_bytes], "diskio")
+    save_to_rrdfile(timestamp, instance_name, [read_queue, write_queue], "net")
 
 def parse_each_line(line):
     global timestamp
@@ -176,5 +201,5 @@ def collect_virt_top_data():
         else:
             break
 
-if __name__ == "__main__":
-    collect_virt_top_data()
+#if __name__ == "__main__":
+#    collect_virt_top_data()

@@ -3,7 +3,7 @@
 """
 Collect network tx/rx stats from Virtual Machines
 """
-
+import rrdtool
 import libvirt
 import sys
 import os
@@ -25,11 +25,17 @@ def save_to_file(outlist, filesuffix):
     output = csv.writer(open(outputfile, 'a+'), delimiter=',', quotechar='|')
     output.writerow(outlist)
 
+def save_to_rrdfile(timestamp, instance_name, statlist, stype):
+    if stype == "cpu":
+        print time.time()
+        rrd_file = str(instance_name+'_'+cpufile+'.rrd')
+        arguments = "{}:{}".format(timestamp, statlist[0])
+        print arguments
+        print instance_name
+        rrdtool.update(rrd_file, arguments)
+   
+
 def save_all_stats(tokens):
-    memfile = "mem_stats"
-    cpufile = "cpu_stats"
-    diskiofile = "disk_io_stats"
-    netfile    = "net_io_stats"
     # ID S RDRQ WRRQ RXBY TXBY %CPU %MEM   TIME    NAME 
     instance_id = tokens[0]
     read_queue  = tokens[2]
@@ -41,7 +47,8 @@ def save_all_stats(tokens):
     vm_time     = tokens[8]
     instance_name = tokens[9]
     vcpus = vcpus_dict[instance_name]
-    save_to_file([timestamp, hostname, instance_id, instance_name, cpu_percent, vcpus, hostcpus, vm_time], cpufile)
+    #save_to_file([timestamp, hostname, instance_id, instance_name, cpu_percent, vcpus, hostcpus, vm_time], cpufile)
+    save_to_rrdfile(timestamp, instance_name, cpu_percent, "cpu")
     save_to_file([timestamp, hostname, instance_id, instance_name, mem_percent, hostmem], memfile)
     save_to_file([timestamp, hostname, instance_id, instance_name, rx_bytes, tx_bytes], netfile) 
     save_to_file([timestamp, hostname, instance_id, instance_name, read_queue, write_queue], diskiofile) 
@@ -71,16 +78,72 @@ timestamp = -1
 hostname = ""
 hostmem  = ""
 hostcpus = ""
+memfile = "mem_stats"
+cpufile = "cpu_stats"
+diskiofile = "disk_io_stats"
+netfile    = "net_io_stats"
+time_interval = 5
 
 # dictionary to hold vcpus info
 vcpus_dict = {}
-
+def create_rrd_files(instance_name):
+    start_time = int(time.time())
+    timeout = str(2*time_interval)
+    rrdtool.create(str(instance_name+'_'+cpufile+'.rrd'), '--step', str(time_interval),
+            '--start', str(start_time),
+            'DS:cpu_percent:GAUGE:'+timeout+':0:U',
+            'RRA:AVERAGE:0.5:1:17280', # stores samples collected for 1 day 5*60*24
+            'RRA:AVERAGE:0.5:360:240', # 30min averages for 5 days
+            'RRA:AVERAGE:0.5:720:240', # 1 hour averages for 10 days
+            'RRA:AVERAGE:0.5:1440:240', # 2 hour averages for 20 days
+            'RRA:AVERAGE:0.5:8640:40', # 12 hour averages for 20 days
+            'RRA:AVERAGE:0.5:12780:60', # 1 day averages for 60 days
+            'RRA:AVERAGE:0.5:89460:10') # 1 week for 10 weeks
+    rrdtool.create(str(instance_name+'_'+netfile+'.rrd'), '--step', str(time_interval),
+            '--start', str(start_time),
+            'DS:rx_bytes:GAUGE:'+timeout+':0:U',
+            'DS:tx_bytes:GAUGE:'+timeout+':0:U',
+            'RRA:AVERAGE:0.5:1:17280', # stores samples collected for 1 day 5*60*24
+            'RRA:AVERAGE:0.5:360:240', # 30min averages for 5 days
+            'RRA:AVERAGE:0.5:720:240', # 1 hour averages for 10 days
+            'RRA:AVERAGE:0.5:1440:240', # 2 hour averages for 20 days
+            'RRA:AVERAGE:0.5:8640:40', # 12 hour averages for 20 days
+            'RRA:AVERAGE:0.5:12780:60', # 1 day averages for 60 days
+            'RRA:AVERAGE:0.5:89460:10') # 1 week for 10 weeks
+    rrdtool.create(str(instance_name+'_'+diskiofile+'.rrd'), '--step', str(time_interval),
+            '--start', str(start_time),
+            'DS:read_queue:GAUGE:'+timeout+':0:U',
+            'DS:write_queue:GAUGE:'+timeout+':0:U',
+            'RRA:AVERAGE:0.5:1:17280', # stores samples collected for 1 day 5*60*24
+            'RRA:AVERAGE:0.5:360:240', # 30min averages for 5 days
+            'RRA:AVERAGE:0.5:720:240', # 1 hour averages for 10 days
+            'RRA:AVERAGE:0.5:1440:240', # 2 hour averages for 20 days
+            'RRA:AVERAGE:0.5:8640:40', # 12 hour averages for 20 days
+            'RRA:AVERAGE:0.5:12780:60', # 1 day averages for 60 days
+            'RRA:AVERAGE:0.5:89460:10') # 1 week for 10 weeks
+    rrdtool.create(str(instance_name+'_'+memfile+'.rrd'), '--step', str(time_interval),
+            '--start', str(start_time),
+            'DS:mem_percent:GAUGE:'+timeout+':0:U',
+            'RRA:MAX:0.5:1:17280', # stores samples collected for 1 day 5*60*24
+            'RRA:MAX:0.5:720:240', # 1 hour averages for 5 days
+            'RRA:MAX:0.5:12780:10', # 1 day averages for 10 days
+            'RRA:MAX:0.5:1:17280', # stores samples collected for 1 day 5*60*24
+            'RRA:MAX:0.5:720:240', # 1 hour averages for 5 days
+            'RRA:MAX:0.5:12780:10', # 1 day averages for 10 days
+            'RRA:AVERAGE:0.5:1:17280', # stores samples collected for 1 day 5*60*24
+            'RRA:AVERAGE:0.5:360:240', # 30min averages for 5 days
+            'RRA:AVERAGE:0.5:720:240', # 1 hour averages for 10 days
+            'RRA:AVERAGE:0.5:1440:240', # 2 hour averages for 20 days
+            'RRA:AVERAGE:0.5:8640:40', # 12 hour averages for 20 days
+            'RRA:AVERAGE:0.5:12780:60', # 1 day averages for 60 days
+            'RRA:AVERAGE:0.5:89460:10') # 1 week for 10 weeks
+    
 def get_vcpus_info():
     #Open connection to libvirt
     conn = libvirt.openReadOnly(None)
     if conn == None:
         print 'Failed to open connection to the hypervisor'
-        sys.exit(1)
+        return False
 
     domain_list = conn.listAllDomains()
     for dl in domain_list:
@@ -89,12 +152,18 @@ def get_vcpus_info():
         dominfo = dom.info()
         dl_vcpus = dominfo[3]
         vcpus_dict[dlname] = dl_vcpus
-
+        create_rrd_files(dlname)
+    return True
 
 # Globals
 # subprocess to start virt-top
 def collect_virt_top_data():
-    virt_top_command = ['virt-top', '-d', '5', '--script', '--stream']
+    if not get_vcpus_info():
+        exit()
+    
+    time.sleep(5)
+
+    virt_top_command = ['virt-top', '-d', str(time_interval), '--script', '--stream']
     virt_top_proc = subprocess.Popen(virt_top_command,stdout=subprocess.PIPE)
     virt_top_output_processing = False
    
@@ -103,8 +172,9 @@ def collect_virt_top_data():
         line = virt_top_proc.stdout.readline()
         if line != '':
             #get vcpus info
-            get_vcpus_info()
             parse_each_line(line)
         else:
             break
 
+if __name__ == "__main__":
+    collect_virt_top_data()

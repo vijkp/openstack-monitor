@@ -44,17 +44,15 @@ def save_to_rrdfile(ts, instance_name, statlist, stype):
     elif stype == "mem":
         rrd_file = str(instance_name+'_'+memfile+'.rrd')
         arguments = "{}:{}".format(ts, statlist[0])
-    elif stype == "diskio":
+    elif stype == "disk_io":
         rrd_file = str(instance_name+'_'+diskiofile+'.rrd')
         arguments = "{}:{}:{}".format(ts, convert_to_bytes(statlist[0]), convert_to_bytes(statlist[1]))
-    elif stype == "net":
+    elif stype == "net_io":
         rrd_file = str(instance_name+'_'+netfile+'.rrd')
         arguments = "{}:{}:{}".format(ts, convert_to_bytes(statlist[0]), convert_to_bytes(statlist[1]))
     else:
         print "error: invalid stat type"
         exit(1)
-    print arguments
-    print rrd_file
     rrdtool.update(rrd_file, arguments)
 
 def save_all_stats(tokens):
@@ -75,8 +73,8 @@ def save_all_stats(tokens):
     #save_to_file([timestamp, hostname, instance_id, instance_name, read_queue, write_queue], diskiofile) 
     save_to_rrdfile(timestamp, instance_name, [cpu_percent], "cpu")
     save_to_rrdfile(timestamp, instance_name, [mem_percent], "mem")
-    save_to_rrdfile(timestamp, instance_name, [rx_bytes, tx_bytes], "diskio")
-    save_to_rrdfile(timestamp, instance_name, [read_queue, write_queue], "net")
+    save_to_rrdfile(timestamp, instance_name, [rx_bytes, tx_bytes], "disk_io")
+    save_to_rrdfile(timestamp, instance_name, [read_queue, write_queue], "net_io")
 
 def parse_each_line(line):
     global timestamp
@@ -152,9 +150,9 @@ def create_rrd_files(instance_name):
             'RRA:MAX:0.5:1:17280', # stores samples collected for 1 day 5*60*24
             'RRA:MAX:0.5:720:240', # 1 hour averages for 5 days
             'RRA:MAX:0.5:12780:10', # 1 day averages for 10 days
-            'RRA:MAX:0.5:1:17280', # stores samples collected for 1 day 5*60*24
-            'RRA:MAX:0.5:720:240', # 1 hour averages for 5 days
-            'RRA:MAX:0.5:12780:10', # 1 day averages for 10 days
+            'RRA:MIN:0.5:1:17280', # stores samples collected for 1 day 5*60*24
+            'RRA:MIN:0.5:720:240', # 1 hour averages for 5 days
+            'RRA:MIN:0.5:12780:10', # 1 day averages for 10 days
             'RRA:AVERAGE:0.5:1:17280', # stores samples collected for 1 day 5*60*24
             'RRA:AVERAGE:0.5:360:240', # 30min averages for 5 days
             'RRA:AVERAGE:0.5:720:240', # 1 hour averages for 10 days

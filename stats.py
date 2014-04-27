@@ -3,54 +3,73 @@
 """ classes for storing computed stats """
 
 class avg_stats:
-    def __init__(self, sname, instance_id):
-        self.name = sname
-        self.instance_id = instance_id
-        self.ts = 0
-        self.avg_2week = 0
-        self.avg_1week = 0
-        self.avg_1day = 0
-        self.avg_12hrs = 0
-        self.avg_6hrs = 0
-        self.avg_3hrs = 0
-        self.avg_1hr = 0
-        self.avg_30min = 0
-    def update(self, t, a2w, a1w, a1d, a12h, a6h, a3h, a1h, a30m):
-        self.ts = t
-        self.avg_2week = a2w
-        self.avg_1week = a1w
-        self.avg_1day = a1d
-        self.avg_12hrs = a12h
-        self.avg_6hrs = a6h
-        self.avg_3hrs = a3h
-        self.avg_1hr = a1h
-        self.avg_30min = a30m
-    def show(self):
-        print "{} {} {} {} {} {} {} {} {} {}".format(self.name, self.instance_id, self.avg_2week, self.avg_1week, self.avg_1day, self.avg_12hrs, self.avg_6hrs, self.avg_3hrs, self.avg_1hr, self.avg_30min)
+    def __init__(self, sname, stype, stype_m):
+        self.instance_name = sname
+        self.stype = stype
+        self.stype_m = stype_m
+        self.avg_5s = 0.0
+        self.avg_1hr = 0.0
+        self.avg_2hr = 0.0
+        self.avg_12hr = 0.0
+        self.avg_1d = 0.0
+        self.avg_1w = 0.0
+    def update(self, duration, value, cftype = 'AVERAGE'):
+        if duration == "5s":
+            self.avg_5s = value
+        elif duration == "1hr":
+            self.avg_1hr = value
+        elif duration == "2hr":
+            self.avg_2hr = value
+        elif duration == "12hr":
+            self.avg_12hr = value
+        elif duration == "1d":
+            self.avg_1d = value
+        elif duration == "1w":
+            self.avg_1w = value
 
-    def get_values(self):
-        return [self.avg_2week, self.avg_1week, self.avg_1day, self.avg_12hrs, self.avg_6hrs, self.avg_3hrs, self.avg_1hr, self.avg_30min]
-
-    def get_all(self):
-        return [self.ts, self.name, self.instance_id, self.avg_2week, self.avg_1week, self.avg_1day, self.avg_12hrs, self.avg_6hrs, self.avg_3hrs, self.avg_1hr, self.avg_30min]
-
-
-class maxmin_stats:
-    def __init__(self, timestamp):
-        ts = timestamp
-        minm = 0
-        maxm = 0
-        minm_ts = 0
-        maxm_ts = 0
-    def show(self):
-        print "{} {} {} {} {} {} {} {} {} {}".format(self.name, self.instance_id, self.)
-
-    def get_values(self):
-        return [self.avg_2week, self.avg_1week, self.avg_1day, self.avg_12hrs, self.avg_6hrs, self.avg_3hrs, self.avg_1hr, self.avg_30min]
-
-    def get_all(self):
-        return [self.ts, self.name, self.instance_id, self.avg_2week, self.avg_1week, self.avg_1day, self.avg_12hrs, self.avg_6hrs, self.avg_3hrs, self.avg_1hr, self.avg_30min]
-
-def get_stat(time1, time2, stype):
-    return dummystat
+class avg_maxmin_stats:
+    def __init__(self, sname, stype, stype_m):
+        self.instance_name = sname
+        self.stype = stype
+        self.stype_m = stype_m
+        self.max_5s = 0.0
+        self.max_1hr = 0.0
+        self.max_1d = 0.0
+        self.min_5s = 0.0
+        self.min_1hr = 0.0
+        self.min_1d = 0.0
+        self.avg_5s = 0.0
+        self.avg_1hr = 0.0
+        self.avg_2hr = 0.0
+        self.avg_12hr = 0.0
+        self.avg_1d = 0.0
+        self.avg_1w = 0.0
+    def update(self, duration, value, cftype = 'AVERAGE'):
+        if cftype == 'AVERAGE':
+            if duration == "5s":
+                self.avg_5s = value
+            elif duration == "1hr":
+                self.avg_1hr = value
+            elif duration == "2hr":
+                self.avg_2hr = value
+            elif duration == "12hr":
+                self.avg_12hr = value
+            elif duration == "1d":
+                self.avg_1d = value
+            elif duration == "1w":
+                self.avg_1w = value
+        elif cftype == 'MAX':
+            if duration == "5s":
+                self.max_5s = value
+            elif duration == '1hr':
+                self.max_1hr = value
+            elif duration == '1d':
+                self.max_1d = value
+        elif cftype == 'MIN':
+            if duration == "5s":
+                self.min_5s = value
+            elif duration == '1hr':
+                self.min_1hr = value
+            elif duration == '1d':
+                self.min_1d = value
 

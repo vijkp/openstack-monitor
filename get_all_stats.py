@@ -12,9 +12,7 @@ class diskThread (threading.Thread):
         threading.Thread.__init__(self)
     def run(self):
         print "Starting disk"
-        while(1): 
-            collect_disk_stats()
-            time.sleep(5)
+        collect_disk_stats()
         print "Exiting disk "
 
 class cpuThread (threading.Thread):

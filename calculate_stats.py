@@ -10,7 +10,10 @@ import libvirt
 import stats as st
 import subprocess
 import rrdtool
+import os
+import thresholds as th
 
+# Globals
 stat_types = ["cpu", "mem", "disk_io", "disk", "net_io"]
 instance_list = []
 metrics_table = {}  # stores pointers to avg_stats and avg_minmax_stats for each inst, stype, mt
@@ -20,7 +23,6 @@ stype_metrics["mem"] = ["mem_percent"]
 stype_metrics["disk_io"] = ["read_queue", "write_queue"]
 stype_metrics["disk"] = ["size_used", "size_available", "util_percent"]
 stype_metrics["net_io"] = ["rx_bytes", "tx_bytes"]
-
 
 def create_metrics_table():
     global metrics_table
@@ -45,7 +47,6 @@ def get_instance_list():
     for dl in domain_list:
         result.append(dl.name())
     return result
-
 
 def fetch_value(instance_name, stype, cfg, starttime, resolution):
     cmd = "rrdtool fetch {}_{}_stats.rrd {} -s {} -r {}".format(instance_name, 
@@ -87,29 +88,72 @@ def update_value(inst, stype, duration, values, cftype = "AVERAGE"):
         metrics_table[inst, stype, "rx_bytes"].update(duration, values[0])
         metrics_table[inst, stype, "tx_bytes"].update(duration, values[1])
 
+def fetch_and_update_stats():
+    for inst in instance_list:
+        for stype in stat_types:
+            update_value(inst, stype, "5s", fetch_value(inst, stype, "AVERAGE", "-10s", "5"))
+            update_value(inst, stype, "1hr", fetch_value(inst, stype, "AVERAGE", "-2hr", "3600"))
+            update_value(inst, stype, "2hr", fetch_value(inst, stype, "AVERAGE", "-4hr", "7200"))
+            update_value(inst, stype, "12hr", fetch_value(inst, stype, "AVERAGE", "-14hr", "43200"))
+            update_value(inst, stype, "1d", fetch_value(inst, stype, "AVERAGE", "-2d", "86400"))
+            update_value(inst, stype, "1w", fetch_value(inst, stype, "AVERAGE", "-2w", "604800"))
+            if stype == "mem":
+                update_value(inst, stype, "5s", fetch_value(inst, stype, "MAX", "-10s", "5"))
+                update_value(inst, stype, "1hr", fetch_value(inst, stype, "MAX", "-2hr", "5"))
+                update_value(inst, stype, "1d", fetch_value(inst, stype, "MAX", "-2d", "5"))
+                update_value(inst, stype, "5s", fetch_value(inst, stype, "MIN", "-10s", "5"))
+                update_value(inst, stype, "1hr", fetch_value(inst, stype, "MIN", "-2hr", "5"))
+                update_value(inst, stype, "1d", fetch_value(inst, stype, "MIN", "-2d", "5"))
+    #for key, value in metrics_table.iteritems():
+    #    print key, value.instance_name, value.stype, value.stype_m, value.avg_5s, value.avg_2hr, value.avg_1hr, value.avg_1d, value.avg_12hr, value.avg_1w
 
+def generate_recommendations():
+    # for each instance 
+    for inst in instance_list:
+        for stype in stat_types:
+            if stype == 'cpu':
+                if(metrics_table[inst, stype, "cpu_percent"].avg_5s > th.avg_cpu_1w_upperlimit):
+                    print "high alert1"
+                if(metrics_table[inst, stype, "cpu_percent"].avg_5s < th.avg_cpu_1w_lowerlimit):
+                    print "low alert1" + inst
+            elif stype == 'disk':
+                if(metrics_table[inst, stype, "util_percent"].avg_5s > th.avg_disk_1w_upperlimit):
+                    print "highalert1"
+            elif stype == 'net_io':
+                if(metrics_table[inst, stype, "rx_bytes"].avg_5s > th.avg_net_io_1w_upperlimit):
+                    print "highalert1"
+                if(metrics_table[inst, stype, "tx_bytes"].avg_5s > th.avg_net_io_1w_upperlimit):
+                    print "highalert1"
+                if(metrics_table[inst, stype, "rx_bytes"].avg_5s < th.avg_net_io_1w_lowerlimit):
+                    print "low alert1" + inst
+                if(metrics_table[inst, stype, "tx_bytes"].avg_5s < th.avg_net_io_1w_lowerlimit):
+                    print "low alert1" + inst
+            elif stype == 'mem':
+                if(metrics_table[inst, stype, "mem_percent"].avg_5s > th.avg_mem_1w_upperlimit):
+                    print "highalert1"
+                if(metrics_table[inst, stype, "mem_percent"].avg_5s < th.avg_mem_1w_lowerlimit):
+                    print "low alert1" + inst
+            elif stype == 'disk_io':
+                if(metrics_table[inst, stype, "read_queue"].avg_5s > th.avg_disk_io_1w_upperlimit):
+                    print "highalert1"
+                if(metrics_table[inst, stype, "write_queue"].avg_5s > th.avg_disk_io_1w_upperlimit):
+                    print "highalert1"
+                if(metrics_table[inst, stype, "read_queue"].avg_5s < th.avg_disk_io_1w_lowerlimit):
+                    print "low alert1" + inst
+                    print "alert1"
+                if(metrics_table[inst, stype, "write_queue"].avg_5s < th.avg_disk_io_1w_lowerlimit):
+                    print "low alert1" + inst
+                    print "alert1"
+
+# main()
 instance_list = get_instance_list()
 create_metrics_table()
 
+# fetch values from rrd files
+fetch_and_update_stats()
 
-for inst in instance_list:
-    for stype in stat_types:
-        update_value(inst, stype, "5s", fetch_value(inst, stype, "AVERAGE", "-10s", "5"))
-        update_value(inst, stype, "1hr", fetch_value(inst, stype, "AVERAGE", "-2hr", "3600"))
-        update_value(inst, stype, "2hr", fetch_value(inst, stype, "AVERAGE", "-4hr", "7200"))
-        update_value(inst, stype, "12hr", fetch_value(inst, stype, "AVERAGE", "-14hr", "43200"))
-        update_value(inst, stype, "1d", fetch_value(inst, stype, "AVERAGE", "-2d", "86400"))
-        update_value(inst, stype, "1w", fetch_value(inst, stype, "AVERAGE", "-2w", "604800"))
-        if stype == "mem":
-            update_value(inst, stype, "5s", fetch_value(inst, stype, "MAX", "-10s", "5"))
-            update_value(inst, stype, "1hr", fetch_value(inst, stype, "MAX", "-2hr", "5"))
-            update_value(inst, stype, "1d", fetch_value(inst, stype, "MAX", "-2d", "5"))
-            update_value(inst, stype, "5s", fetch_value(inst, stype, "MIN", "-10s", "5"))
-            update_value(inst, stype, "1hr", fetch_value(inst, stype, "MIN", "-2hr", "5"))
-            update_value(inst, stype, "1d", fetch_value(inst, stype, "MIN", "-2d", "5"))
+# generate recos
+generate_recommendations()
 
 
-
-for key, value in metrics_table.iteritems():
-    print key, value.instance_name, value.stype, value.stype_m, value.avg_5s, value.avg_2hr, value.avg_1hr, value.avg_1d, value.avg_12hr, value.avg_1w
 

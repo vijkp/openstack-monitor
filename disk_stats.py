@@ -7,12 +7,14 @@ import subprocess
 import time
 import libvirt
 import rrdtool
+import os
 
 def create_rrd_files(instance_name):
     time_interval = 5
     start_time = int(time.time())
     timeout = str(2*time_interval)
-    rrdtool.create(str(instance_name+'_disk_stats.rrd'), '--step', str(time_interval),
+    rrdtool.create(str(instance_name+'_disk_stats.rrd'), 
+            '--step', str(time_interval),
             '--start', str(start_time),
             'DS:size_used:GAUGE:'+timeout+':0:U',
             'DS:size_available:GAUGE:'+timeout+':0:U',
@@ -42,24 +44,26 @@ def initialize():
         create_rrd_files(dl.name())
     return True
 
+def virtdf():
+    #Get output of virt-df command
+    out = subprocess.check_output("virt-df --csv", shell=True)    
+    lines = out.split('\n')
+    timestamp = int(time.time())
+    for i in range(1, len(lines) - 1):
+        stats = lines[i].split(',')
+        #timestamp, hostname, VirtualMachine,Filesystem,1K-blocks,Used,Available,Use %
+        instance_name = stats[0]
+        log = [stats[3], stats[4], stats[5]]
+        write_to_rrdfile(timestamp, instance_name, log) 
+
 # subprocess to start virt-df
 def collect_disk_stats():
     if not initialize():
         exit()
     
     while True:
- #       time.sleep(5)
-
-        #Get output of virt-df command
-        out = subprocess.check_output("virt-df --csv", shell=True)    
-        lines = out.split('\n')
-        timestamp = int(time.time())
-        for i in range(1, len(lines) - 1):
-            stats = lines[i].split(',')
-            #timestamp, hostname, VirtualMachine,Filesystem,1K-blocks,Used,Available,Use %
-            instance_name = stats[0]
-            log = [stats[3], stats[4], stats[5]]
-            write_to_rrdfile(timestamp, instance_name, log) 
+        #time.sleep(5)
+        virtdf()
 
 #if __name__ == "__main__":
  #   collect_disk_stats()

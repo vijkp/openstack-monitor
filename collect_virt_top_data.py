@@ -62,11 +62,11 @@ def save_all_stats(tokens):
     write_queue = tokens[3]
     rx_bytes    = tokens[4]
     tx_bytes    = tokens[5]
-    cpu_percent = tokens[6]
     mem_percent = tokens[7]
     vm_time     = tokens[8]
     instance_name = tokens[9]
     vcpus = vcpus_dict[instance_name]
+    cpu_percent = float((float(tokens[6])*total_cores)/int(vcpus))
     #save_to_file([timestamp, hostname, instance_id, instance_name, cpu_percent, vcpus, hostcpus, vm_time], cpufile)
     #save_to_file([timestamp, hostname, instance_id, instance_name, mem_percent, hostmem], memfile)
     #save_to_file([timestamp, hostname, instance_id, instance_name, rx_bytes, tx_bytes], netfile) 
@@ -106,6 +106,7 @@ cpufile = "cpu_stats"
 diskiofile = "disk_io_stats"
 netfile    = "net_io_stats"
 time_interval = 5
+total_cores = 1
 
 # dictionary to hold vcpus info
 vcpus_dict = {}
@@ -162,12 +163,15 @@ def create_rrd_files(instance_name):
             'RRA:AVERAGE:0.5:89460:10') # 1 week for 10 weeks
     
 def get_vcpus_info():
+    global total_cores
     #Open connection to libvirt
     conn = libvirt.openReadOnly(None)
     if conn == None:
         print 'Failed to open connection to the hypervisor'
         return False
-
+    
+    res = conn.getInfo()
+    total_cores = int(res[2])
     domain_list = conn.listAllDomains()
     for dl in domain_list:
         dlname = dl.name()

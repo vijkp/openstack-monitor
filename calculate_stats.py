@@ -12,6 +12,9 @@ import subprocess
 import rrdtool
 import os
 import thresholds as th
+import glob
+import json
+import collections
 
 # Globals
 stat_types = ["cpu", "mem", "disk_io", "disk", "net_io"]
@@ -23,6 +26,9 @@ stype_metrics["mem"] = ["mem_percent"]
 stype_metrics["disk_io"] = ["read_queue", "write_queue"]
 stype_metrics["disk"] = ["size_used", "size_available", "util_percent"]
 stype_metrics["net_io"] = ["rx_bytes", "tx_bytes"]
+calc_interval = 600 
+calc_delay = 10
+file_list = collections.deque([], 10) # list with max length 10
 
 def create_metrics_table():
     global metrics_table
@@ -69,6 +75,20 @@ def fetch_value(instance_name, stype, cfg, starttime, resolution):
                 break
         lineindex -= 1
 
+def get_reftime_value():
+    rlist =  glob.glob("*cpu_stats*.rrd")
+    if len(rlist) == 0:
+        print "error: no rrd files"
+        exit(1)
+    filename = rlist[0]
+    cmd = "rrdtool fetch {} {} -s {} -r {}".format(filename, "AVERAGE", "-2hr", str(calc_interval))
+    output = subprocess.check_output(cmd, shell=True)
+    lines = output.split('\n')
+    lineindex = len(lines) - 2
+    index =  lines[lineindex].find(':')
+    timestamp = int(lines[lineindex][:index])
+    return timestamp
+
 def update_value(inst, stype, duration, values, cftype = "AVERAGE"):
     if values == None:
         return
@@ -107,53 +127,108 @@ def fetch_and_update_stats():
     #for key, value in metrics_table.iteritems():
     #    print key, value.instance_name, value.stype, value.stype_m, value.avg_5s, value.avg_2hr, value.avg_1hr, value.avg_1d, value.avg_12hr, value.avg_1w
 
-def generate_recommendations():
+recos = []
+
+def generate_recommendations(ctime):
     # for each instance 
     for inst in instance_list:
         for stype in stat_types:
             if stype == 'cpu':
-                if(metrics_table[inst, stype, "cpu_percent"].avg_5s > th.avg_cpu_1w_upperlimit):
-                    print "high alert1"
-                if(metrics_table[inst, stype, "cpu_percent"].avg_5s < th.avg_cpu_1w_lowerlimit):
-                    print "low alert1" + inst
+                value = metrics_table[inst, stype, "cpu_percent"].avg_1hr
+                if(value > th.avg_cpu_1w_upperlimit):
+                    recos.append(st.reco(inst, stype, value, "upl-cpu"))
+                if(value < th.avg_cpu_1w_lowerlimit):
+                    recos.append(st.reco(inst, stype, value, "low-cpu"))
+            
             elif stype == 'disk':
-                if(metrics_table[inst, stype, "util_percent"].avg_5s > th.avg_disk_1w_upperlimit):
-                    print "highalert1"
+                value = metrics_table[inst, stype, "util_percent"].avg_1hr
+                if( value > th.avg_disk_1w_upperlimit):
+                    recos.append(st.reco(inst, stype, value, "lowl-cpu"))
+            
             elif stype == 'net_io':
-                if(metrics_table[inst, stype, "rx_bytes"].avg_5s > th.avg_net_io_1w_upperlimit):
-                    print "highalert1"
-                if(metrics_table[inst, stype, "tx_bytes"].avg_5s > th.avg_net_io_1w_upperlimit):
-                    print "highalert1"
-                if(metrics_table[inst, stype, "rx_bytes"].avg_5s < th.avg_net_io_1w_lowerlimit):
-                    print "low alert1" + inst
-                if(metrics_table[inst, stype, "tx_bytes"].avg_5s < th.avg_net_io_1w_lowerlimit):
-                    print "low alert1" + inst
+                value = metrics_table[inst, stype, "rx_bytes"].avg_1hr
+                if(value > th.avg_net_io_1w_upperlimit):
+                    recos.append(st.reco(inst, stype, value, "upl-rx"))
+                if(value < th.avg_net_io_1w_lowerlimit):
+                    recos.append(st.reco(inst, stype, value, "lowl-rx"))
+
+                value = metrics_table[inst, stype, "tx_bytes"].avg_1hr
+                if(value > th.avg_net_io_1w_upperlimit):
+                    recos.append(st.reco(inst, stype, value, "upl-tx"))
+                if(value < th.avg_net_io_1w_lowerlimit):
+                    recos.append(st.reco(inst, stype, value, "lowl-tx"))
+
             elif stype == 'mem':
-                if(metrics_table[inst, stype, "mem_percent"].avg_5s > th.avg_mem_1w_upperlimit):
-                    print "highalert1"
-                if(metrics_table[inst, stype, "mem_percent"].avg_5s < th.avg_mem_1w_lowerlimit):
-                    print "low alert1" + inst
+                value = metrics_table[inst, stype, "mem_percent"].avg_1hr
+                if(value > th.avg_mem_1w_upperlimit):
+                    recos.append(st.reco(inst, stype, value, "upl-mem"))
+                if(value < th.avg_mem_1w_lowerlimit):
+                    recos.append(st.reco(inst, stype, value, "lowl-mem"))
+
             elif stype == 'disk_io':
-                if(metrics_table[inst, stype, "read_queue"].avg_5s > th.avg_disk_io_1w_upperlimit):
-                    print "highalert1"
-                if(metrics_table[inst, stype, "write_queue"].avg_5s > th.avg_disk_io_1w_upperlimit):
-                    print "highalert1"
-                if(metrics_table[inst, stype, "read_queue"].avg_5s < th.avg_disk_io_1w_lowerlimit):
-                    print "low alert1" + inst
-                    print "alert1"
-                if(metrics_table[inst, stype, "write_queue"].avg_5s < th.avg_disk_io_1w_lowerlimit):
-                    print "low alert1" + inst
-                    print "alert1"
+                value = metrics_table[inst, stype, "read_queue"].avg_1hr
+                if(value > th.avg_disk_io_1w_upperlimit):
+                    recos.append(st.reco(inst, stype, value, "upl-rdq"))
+                if(value > th.avg_disk_io_1w_lowerlimit):
+                    recos.append(st.reco(inst, stype, value, "lowl-rdq"))
+                
+                value = metrics_table[inst, stype, "write_queue"].avg_1hr
+                if(value > th.avg_disk_io_1w_upperlimit):
+                    recos.append(st.reco(inst, stype, value, "upl-wrq"))
+                if(value > th.avg_disk_io_1w_lowerlimit):
+                    recos.append(st.reco(inst, stype, value, "lowl-wrq"))
+        
+    # write down all recos into a file with a timestamp
+    fjsonname = ctime.strftime("%Y%m%d-%H%M-%S") + "_recos.json"
+    fjson = open(fjsonname, "w")
+    # write recos into a json file whose name is the current timestamp
+    jrecos = []
+    for r in recos:
+        jrecos.append({"reco":{"instance_name": r.instance_name, "rname": r.rname, "stype": r.stype, "value": r.value}})
+    jsonfinal = {}
+    jsonfinal["timestamp"] = ctime.strftime("%Y-%m-%d %H:%M:%S")
+    jsonfinal["allrecos"] = jrecos
+    jsonrecos = json.JSONEncoder().encode(jsonfinal)
+    fjson.write(jsonrecos + "\n")
+    fjson.close()
+    file_list.append(fjsonname)
+    file_list_length = len(file_list)
+    file_list_index = file_list_length - 1
+    while file_list_index >= 0:
+        os.system("ln -s  -f ../data/{} ../web/session{}.json".format(file_list[file_list_index], file_list_length - file_list_index - 1))
+        file_list_index -= 1
 
-# main()
-instance_list = get_instance_list()
-create_metrics_table()
+def main():
+    global instance_list
 
-# fetch values from rrd files
-fetch_and_update_stats()
+    current_ts = int(time.time())
+    ref_ts = get_reftime_value ()
+    
+    tdiff = ref_ts - current_ts
+    if tdiff >= 0:
+        print "waiting {} seconds".format(tdiff + calc_delay)
+        time.sleep(tdiff + calc_delay)
+    else:
+        print "waiting {} seconds".format(calc_interval + tdiff + calc_delay)
+        time.sleep(calc_interval + tdiff + calc_delay)
+            
+    while True:
+        time_now = datetime.datetime.now()
+        print "{}: processing rrd files to generate recommendations".format(time_now.strftime("%Y-%m-%d %H:%M:%S"))
+        instance_list = get_instance_list()
+        create_metrics_table()
 
-# generate recos
-generate_recommendations()
+        # fetch values from rrd files
+        fetch_and_update_stats()
 
+        # generate recos
+        generate_recommendations(time_now)
+
+        current_ts = int(time.time())
+        tdiff = (current_ts - ref_ts)%calc_interval
+        time.sleep(calc_interval - tdiff + calc_delay)
+
+if __name__ == "__main__":
+    main()
 
 

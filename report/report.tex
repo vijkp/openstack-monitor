@@ -249,52 +249,54 @@ A simple python HTTP server is currently running in the compute node of the open
 		
 		
 \chapter{Results} 
-The recommendations are shown in the web interface as follows:
-\\
-\\
+The recommendations are shown in the web interface as follows
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.32]{Screenshot}	
+\fbox{\includegraphics[scale=0.32]{Screenshot}}	
 \caption{Recommendation web interface}
 \end{figure}
 
 \textbf{Console output:}
+\fontsize{10}{1.5}
 \begin{verbatim}
 Timestamp: 2014-05-05 18:52:15
-Instance: instance-00000024 High cpu utilization (Average for the past 1 hour: 86.12%).
-Instance: instance-00000024 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
-Instance: instance-00000022 High cpu utilization (Average for the past 1 hour: 89.94%).
-Instance: instance-00000022 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
-Instance: instance-00000021 CPUs under utilized (Average for the past 1 hour: 0.0%).
-Instance: instance-00000021 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
-Instance: instance-00000028 High cpu utilization (Average for the past 1 hour: 88.98%).
-Instance: instance-00000028 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
-Instance: instance-00000027 CPUs under utilized (Average for the past 1 hour: 0.0%).
-Instance: instance-00000027 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
-Instance: instance-00000023 High cpu utilization (Average for the past 1 hour: 89.88%).
-Instance: instance-00000023 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
-Instance: instance-00000026 High cpu utilization (Average for the past 1 hour: 90.01%).
-Instance: instance-00000026 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
+instance-00000024 High cpu utilization (Average for the past 1 hour: 86.12%).
+instance-00000024 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
+instance-00000022 High cpu utilization (Average for the past 1 hour: 89.94%).
+instance-00000022 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
+instance-00000021 CPUs under utilized (Average for the past 1 hour: 0.0%).
+instance-00000021 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
+instance-00000028 High cpu utilization (Average for the past 1 hour: 88.98%).
+instance-00000028 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
+instance-00000027 CPUs under utilized (Average for the past 1 hour: 0.0%).
+instance-00000027 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
+instance-00000023 High cpu utilization (Average for the past 1 hour: 89.88%).
+instance-00000023 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
+instance-00000026 High cpu utilization (Average for the past 1 hour: 90.01%).
+instance-00000026 Low network utilization (Average transfered bytes for the past 1 hour: 0.0).
 \end{verbatim}
 
-Showing rrdtool graphs of the above metrics
+\normalsize
+The below graphs show that the CPU utilization is constantly high for instances 22 and 24 which is why we see them in the list of recommendations shown above. 
 
-\begin{figure}
+
+\begin{figure}[H]
 \centering
-\begin{minipage}{.5\textwidth}
-\centering
-\includegraphics[scale=0.2]{instance22-cpu}	
+\includegraphics[scale=0.5]{instance22-cpu}	
 \caption{High CPU utilization on instance-00000022}
-\end{minipage}
+\end{figure}
 
-\begin{minipage}{.5\textwidth}
+\begin{figure}[H]
 \centering
-\includegraphics[scale=0.2]{instance22-cpu}	
-\caption{High CPU utilization on instance-00000022}
-\end{minipage}
+\includegraphics[scale=0.5]{instance24-cpu}	
+\caption{High CPU utilization on instance-00000024}
+\end{figure}
 
-
-
+The CPU utilization is almost negligible for instance 27 which is captured below.
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{instance27-low-cpu}	
+\caption{Low CPU utilization on instance-00000027}
 \end{figure}
 
 \chapter{Conclusion}

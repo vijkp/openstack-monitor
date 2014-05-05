@@ -27,7 +27,7 @@ stype_metrics["disk_io"] = ["read_queue", "write_queue"]
 stype_metrics["disk"] = ["size_used", "size_available", "util_percent"]
 stype_metrics["net_io"] = ["rx_bytes", "tx_bytes"]
 calc_interval = 600 
-calc_delay = 10
+calc_delay = 20
 file_list = collections.deque([], 10) # list with max length 10
 
 def create_metrics_table():
@@ -127,65 +127,87 @@ def fetch_and_update_stats():
     #for key, value in metrics_table.iteritems():
     #    print key, value.instance_name, value.stype, value.stype_m, value.avg_5s, value.avg_2hr, value.avg_1hr, value.avg_1d, value.avg_12hr, value.avg_1w
 
-recos = []
 
 def generate_recommendations(ctime):
     # for each instance 
+    recos = []
+    message = "Dummy reco message. Value: 0)"
+    timemsg = "1 hour"
     for inst in instance_list:
         for stype in stat_types:
+            message = "no-reco"
             if stype == 'cpu':
                 value = metrics_table[inst, stype, "cpu_percent"].avg_1hr
                 if(value > th.avg_cpu_1w_upperlimit):
-                    recos.append(st.reco(inst, stype, value, "upl-cpu"))
+                    level = st.level[1]
+                    message = "High cpu utilization (Average for the past {}: {}%).".format(timemsg, float(round(value, 2)))
                 if(value < th.avg_cpu_1w_lowerlimit):
-                    recos.append(st.reco(inst, stype, value, "low-cpu"))
-            
+                    level = st.level[0]
+                    message = "CPUs under utilized (Average for the past {}: {}%).".format(timemsg, float(round(value, 2)))
+
             elif stype == 'disk':
                 value = metrics_table[inst, stype, "util_percent"].avg_1hr
                 if( value > th.avg_disk_1w_upperlimit):
-                    recos.append(st.reco(inst, stype, value, "lowl-cpu"))
+                    level = st.level[1]
+                    message = "High disk utilization (Average for the past {}: {}%).".format(timemsg, float(round(value, 2)))
             
             elif stype == 'net_io':
                 value = metrics_table[inst, stype, "rx_bytes"].avg_1hr
                 if(value > th.avg_net_io_1w_upperlimit):
-                    recos.append(st.reco(inst, stype, value, "upl-rx"))
+                    level = st.level[1]
+                    message = "High network utilization (Average received bytes for the past {}: {}).".format(timemsg, float(round(value, 2)))
                 if(value < th.avg_net_io_1w_lowerlimit):
-                    recos.append(st.reco(inst, stype, value, "lowl-rx"))
-
+                    level = st.level[0]
+                    message = "Low network utilization (Average receved bytes for the past {}: {}).".format(timemsg, float(round(value, 2)))
+                
                 value = metrics_table[inst, stype, "tx_bytes"].avg_1hr
                 if(value > th.avg_net_io_1w_upperlimit):
-                    recos.append(st.reco(inst, stype, value, "upl-tx"))
+                    level = st.level[1]
+                    message = "High network utilization (Average transfered bytes for the past {}: {}).".format(timemsg, float(round(value, 2)))
                 if(value < th.avg_net_io_1w_lowerlimit):
-                    recos.append(st.reco(inst, stype, value, "lowl-tx"))
+                    level = st.level[0]
+                    message = "Low network utilization (Average transfered bytes for the past {}: {}).".format(timemsg, float(round(value, 2)))
 
             elif stype == 'mem':
                 value = metrics_table[inst, stype, "mem_percent"].avg_1hr
                 if(value > th.avg_mem_1w_upperlimit):
-                    recos.append(st.reco(inst, stype, value, "upl-mem"))
+                    level = st.level[1]
+                    message = "High memory utilization (Average for the past {}: {}%).".format(timemsg, float(round(value, 2)))
                 if(value < th.avg_mem_1w_lowerlimit):
-                    recos.append(st.reco(inst, stype, value, "lowl-mem"))
+                    level = st.level[0]
+                    message = "Low memory utilization (Average for the past {}: {}%).".format(timemsg, float(round(value, 2)))
 
             elif stype == 'disk_io':
                 value = metrics_table[inst, stype, "read_queue"].avg_1hr
                 if(value > th.avg_disk_io_1w_upperlimit):
-                    recos.append(st.reco(inst, stype, value, "upl-rdq"))
+                    level = st.level[1]
+                    message = "High disk utilization (Average read queue for the past {}: {}).".format(timemsg, float(round(value, 2)))
                 if(value > th.avg_disk_io_1w_lowerlimit):
-                    recos.append(st.reco(inst, stype, value, "lowl-rdq"))
+                    level = st.level[0]
+                    message = "Low disk utilization (Average read queue for the past {}: {}).".format(timemsg, float(round(value, 2)))
                 
                 value = metrics_table[inst, stype, "write_queue"].avg_1hr
                 if(value > th.avg_disk_io_1w_upperlimit):
-                    recos.append(st.reco(inst, stype, value, "upl-wrq"))
+                    level = st.level[1]
+                    message = "High disk utilization (Average write queue for the past {}: {}).".format(timemsg, float(round(value, 2)))
                 if(value > th.avg_disk_io_1w_lowerlimit):
-                    recos.append(st.reco(inst, stype, value, "lowl-wrq"))
-        
+                    level = st.level[0]
+                    message = "Low disk utilization (Average write queue for the past {}: {}).".format(timemsg, float(round(value, 2)))
+            
+            if not (message == "no-reco"):
+                # add recommendation to reco list
+                recos.append(st.reco(inst, stype, value, level, message))
+    
     # write down all recos into a file with a timestamp
     fjsonname = ctime.strftime("%Y%m%d-%H%M-%S") + "_recos.json"
     fjson = open(fjsonname, "w")
     # write recos into a json file whose name is the current timestamp
     jrecos = []
     for r in recos:
-        jrecos.append({"reco":{"instance_name": r.instance_name, "rname": r.rname, "stype": r.stype, "value": r.value}})
+        jrecos.append({"reco":{"instance_name": r.instance_name, "level": r.level, 
+            "stype": r.stype, "value": r.value, "recomsg": r.recomsg}})
     jsonfinal = {}
+    jsonfinal.clear()
     jsonfinal["timestamp"] = ctime.strftime("%Y-%m-%d %H:%M:%S")
     jsonfinal["allrecos"] = jrecos
     jsonrecos = json.JSONEncoder().encode(jsonfinal)

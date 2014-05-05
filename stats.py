@@ -2,16 +2,19 @@
 
 """ classes for storing computed stats """
 
+level = ["low", "medium", "critical"]
+
 class reco:
-    def __init__(self, iname, stype, value, rname):
+    def __init__(self, iname, stype, value, level, recomsg):
         self.instance_name = iname
-        self.rname = rname
         self.stype = stype
         self.value = value
+        self.level = level
+        self.recomsg = recomsg
     def show(self):
-        print "Recommendation:: Instance: {} stype: {} rname: {} value: {}".format(self.instance_name, self.stype, self.rname, self.value)
+        print "Recommendation:: Instance: {} stype: {} value: {} level: {} msg: {}".format(self.instance_name, self.stype, self.value, self.level, self.recomsg)
     def get(self):
-        return "Recommendation:: Instance: {} stype: {} rname: {} value: {}".format(self.instance_name, self.stype, self.rname, self.value)
+        return "Recommendation:: Instance: {} stype: {} value: {} level: {} msg: {}".format(self.instance_name, self.stype, self.value, self.level, self.recomsg)
 
 class avg_stats:
     def __init__(self, sname, stype, stype_m):

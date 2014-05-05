@@ -1,0 +1,81 @@
+<html>
+    <head>
+        <title>Openstack monitor - Dashboard</title>
+        <link rel="stylesheet" href="styles/style.css">
+        <script type="text/javascript">
+              setTimeout(function(){
+                          location = ''
+                            },10000)
+        </script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script>
+
+            url_list = ["session0.json", "session1.json"];
+            //When DOM loaded we click event to button
+            output = "";
+            $(document).ready(function() {
+                $('#data1').html("");
+                //start ajax request
+                for (var current_url in url_list)
+                {
+                    console.log(output);
+                    $.ajax({
+                        url: url_list[current_url],
+                        //force to handle it as text
+                        dataType: "text",
+                        success: function(data) {
+
+                            //data downloaded so we call parseJSON function 
+                            //and pass downloaded data
+                            var json = $.parseJSON(data);
+                            //now json variable contains data in json format
+                            //let's display a few items
+                            timestamp = json.timestamp;
+                            allrecos = json.allrecos;
+                            output = "<hr><b><p align='center'>" + timestamp + "</b></p><hr>";
+                            for(var i in allrecos)
+                            {
+                                current_rec = allrecos[i];
+                                inst = " Instance: " + current_rec.reco.instance_name;
+                                //recom = "Recommendation:" + rec.reco.rname;
+                                //val = "Value:" + rec.reco.value;
+                                //stype = "Stat type:" + rec.reco.stype ;
+                                if (current_rec.reco.level == "low")
+                                {
+                                    currentOutput = "<font color='blue'>";
+                                }
+                                if (current_rec.reco.level == "critical")
+                                {
+                                    currentOutput = "<font color='red'>";
+                                }
+                                if (current_rec.reco.level == "medium")
+                                {
+                                    currentOutput = "<font color='orange'>";
+                                }
+
+                                currentOutput = currentOutput + inst + " " + 
+                                current_rec.reco.recomsg 
+                                + "</br></font>";
+
+                            output = output + currentOutput;
+                        }
+                        $('#data1').append(output);
+                    }
+                });
+            }
+        });
+        </script>
+
+    </head>
+    <body> 
+<div class="page-wrapper">
+
+    <header role="banner">
+    <h1>Openstack Monitor</h1>
+    </header>   
+    <div class="supporting" id="data1" role="main"></div>
+ </div>
+
+
+    </body>
+</html>

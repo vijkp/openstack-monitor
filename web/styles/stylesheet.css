@@ -1,0 +1,57 @@
+body
+{
+        background-color: #1BBC9B;
+        color: #E9F8F2;
+        font-family: 'Lato', sans-serif;
+}
+
+.heading
+{
+        margin: 0.5em 0;
+        font-size: 44px;
+        font-weight: bolder;
+        text-transform: uppercase;
+        font-family: 'Patua One', sans-serif;
+}
+
+.content
+{
+        font-family: 'Lato', sans-serif;
+}
+
+.sidebar
+{
+        background-color: #EEEFF1;
+        min-height: 30em;
+}
+
+.btn
+{
+        text-align: left;
+        width: 50%;
+        margin-top: 0.8em;
+}
+.btn
+{
+        width: 100%;
+        -webkit-transition:background-color 0.6s linear;
+        -moz-transition:background-color 0.6s linear;
+        transition:background-color 0.6s linear;
+}
+
+.btn:hover
+{
+        background-color: #c2c2c2;
+}
+
+
+.mlt
+{
+        margin-top: 5em;
+}
+
+.mmr
+{
+        margin-right: 0.5em;
+}
+

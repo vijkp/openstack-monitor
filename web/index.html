@@ -5,7 +5,7 @@
         <script type="text/javascript">
               setTimeout(function(){
                           location = ''
-                            },10000)
+                            },30000)
         </script>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script>
@@ -32,7 +32,7 @@
                             //let's display a few items
                             timestamp = json.timestamp;
                             allrecos = json.allrecos;
-                            output = "<hr><b><p align='center'>" + timestamp + "</b></p><hr>";
+                            output = "<hr><b><p align='center'>" + "Recommendations last updated at: " + timestamp + " (updated every 10 minutes)" + "</b></p><hr>";
                             for(var i in allrecos)
                             {
                                 current_rec = allrecos[i];
@@ -40,8 +40,7 @@
                                 //recom = "Recommendation:" + rec.reco.rname;
                                 //val = "Value:" + rec.reco.value;
                                 //stype = "Stat type:" + rec.reco.stype ;
-                                if (current_rec.reco.level == "low")
-                                {
+                                if (current_rec.reco.level == "low") {
                                     currentOutput = "<font color='blue'>";
                                 }
                                 if (current_rec.reco.level == "critical")
@@ -62,18 +61,36 @@
                         $('#data1').append(output);
                     }
                 });
+            
             }
+            $.ajax({
+                url: "host_inst.json",
+                dataType: "text",
+                success: function(data) {
+                    var output2 = "<hr><b><p align='center'> Host and VM list </p><hr></b>";
+                 var json = $.parseJSON(data);
+                 output2  = output2  + "<b>"+json.hostname + "</b><br>";
+                    for (var ins in json.instances) { 
+                        output2  = output2 + json.instances[ins] + "<br>"; 
+                    }
+                    $('#data2').append(output2);
+                }
+            });
         });
         </script>
 
     </head>
     <body> 
-<div class="page-wrapper">
-
+<div class="page-wrapwrapper">
     <header role="banner">
-    <h1>Openstack Monitor</h1>
+      <h1>Openstack Monitor</h1> (page refreshes every 30 seconds)
     </header>   
-    <div class="supporting" id="data1" role="main"></div>
+    <div class="page-wrapper">
+        <div class="supporting" id="data1"></div>
+        <div class="page-side" id="data2">
+        </div>
+        <div 'clear:both'>&nbsp;</div>
+     </div>
  </div>
 
 

@@ -10,15 +10,16 @@
 \setlength{\parskip}{0.05in}
 \DeclareGraphicsExtensions{.pdf,.png,.jpg}
 
-\title{\textbf{Making the Cloud Efficient: In-depth study of cloud computing and Resource Management}}
+\title{\textbf{Resource Monitoring and Recommendation Engine for Openstack}}
 \date{}
 \begin{document}
 
 \maketitle
 \begin{center}
 \Large
+\vspace{100pt}
 \textbf{CS677 - Operating Systems}\\
-\vspace{350pt}
+\vspace{250pt}
 \textbf{Submitted by}:\\
 Vijay Pasikanti, Sneha Shankar Narayan\\
 \end{center}
@@ -298,8 +299,8 @@ The CPU utilization is almost negligible for instance 27 which is captured below
 \end{figure}
 
 \chapter{Conclusion}
-We were able to read the various statistics like CPU utilization, memory utilization, network bandwidth utilization, and disk utilization of the virtual machines in the openstack compute node by querying the KVM hypervisor using libvirt APIs. We were able to process the data collected and provide recommendations to the user/open stack administrator to take appropriate actions regarding the virtual machine configuration.
-
+We were able to read the various statistics like CPU utilization, memory utilization, network bandwidth utilization, and disk utilization of the virtual machines in the openstack compute node by querying the KVM hypervisor using libvirt APIs. We were able to process the data collected and provide recommendations to the user/open stack administrator to take appropriate actions regarding the virtual machine configuration.\\
+\\
 This monitoring system can be extended to record various other statistics of the virtual machines in order to build a full fledged open source equivalent of the Amazon Trusted Advisor. 
 
 \begin{thebibliography}{}

@@ -15,6 +15,7 @@ import thresholds as th
 import glob
 import json
 import collections
+import socket
 
 # Globals
 stat_types = ["cpu", "mem", "disk_io", "disk", "net_io"]
@@ -29,6 +30,13 @@ stype_metrics["net_io"] = ["rx_bytes", "tx_bytes"]
 calc_interval = 600 
 calc_delay = 20
 file_list = collections.deque([], 10) # list with max length 10
+
+def get_hostname():
+    if socket.gethostname().find('.')>=0:
+        name=socket.gethostname()
+    else:
+        name=socket.gethostbyaddr(socket.gethostname())[0]
+    return name
 
 def create_metrics_table():
     global metrics_table
@@ -203,13 +211,16 @@ def generate_recommendations(ctime):
     fjson = open(fjsonname, "w")
     # write recos into a json file whose name is the current timestamp
     jrecos = []
+    hostname = get_hostname()
     for r in recos:
-        jrecos.append({"reco":{"instance_name": r.instance_name, "level": r.level, 
+        jrecos.append({"reco":{"instance_name": r.instance_name, 
+            "level": r.level,   
             "stype": r.stype, "value": r.value, "recomsg": r.recomsg}})
     jsonfinal = {}
     jsonfinal.clear()
     jsonfinal["timestamp"] = ctime.strftime("%Y-%m-%d %H:%M:%S")
     jsonfinal["allrecos"] = jrecos
+    
     jsonrecos = json.JSONEncoder().encode(jsonfinal)
     fjson.write(jsonrecos + "\n")
     fjson.close()
@@ -219,6 +230,17 @@ def generate_recommendations(ctime):
     while file_list_index >= 0:
         os.system("ln -s  -f ../data/{} ../web/session{}.json".format(file_list[file_list_index], file_list_length - file_list_index - 1))
         file_list_index -= 1
+    
+    #Write all instances associated with hostname into json
+    host_json_file = open("../web/host_inst.json","w")
+    inst_dict = {}
+    inst_dict.clear()
+    inst_dict["hostname"] = hostname
+    inst_dict["instances"] = instance_list
+
+    inst_json = json.JSONEncoder().encode(inst_dict)
+    host_json_file.write(inst_json + "\n")
+    host_json_file.close()
 
 def main():
     global instance_list

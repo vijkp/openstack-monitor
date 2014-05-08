@@ -29,8 +29,8 @@ stype_metrics["mem"] = ["mem_percent"]
 stype_metrics["disk_io"] = ["read_queue", "write_queue"]
 stype_metrics["disk"] = ["size_used", "size_available", "util_percent"]
 stype_metrics["net_io"] = ["rx_bytes", "tx_bytes"]
-calc_interval = 10 
-calc_delay = 3
+calc_interval = 600 
+calc_delay = 10
 file_list = collections.deque([], 10) # list with max length 10
 
 def get_hostname():

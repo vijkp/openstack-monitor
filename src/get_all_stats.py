@@ -32,6 +32,8 @@ class hostThread (threading.Thread):
         collect_host_stats()
         print "Exiting host stat colelction "
 
+print "Please run this as a daemon, otherwise this command will not return unless killed"
+
 #Create threads
 disk_thread = diskThread()
 cpu_thread = cpuThread()

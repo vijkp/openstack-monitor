@@ -28,6 +28,6 @@ avg_net_io_1w_lowerlimit = 10  # 20% of the allocated bandwidth,
 avg_disk_io_1w_upperlimit = 10000  # 90%, alert user about high IO 
 avg_disk_io_1w_lowerlimit = 50  # 20%, to alert user about resource under utilization
 
-
+max_host_vm_util = 60 # If VM is 60% utilized, recommend users to move VM
 
 

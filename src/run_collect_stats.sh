@@ -1,3 +1,3 @@
 #!/bin/bash
-cd data/
-../get_all_stats.py
+cd ../data/
+../src/get_all_stats.py

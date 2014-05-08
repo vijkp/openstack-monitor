@@ -203,7 +203,7 @@ def generate_host_recommendations(ctime):
                 max_inst = inst;
         
         message = "Instance: " + max_inst + " is taking up most of the Host CPU. Request you to move it."
-
+        message = message + " Host is running at: {} %". format(str(host_cpu_percent))
         #Write to JSON
         host_json_file = open("../web/host_level_stats.json","w")
         jsonfinal = {}

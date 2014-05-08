@@ -69,7 +69,7 @@
                 success: function(data) {
                  var json = $.parseJSON(data);
                  var output3 = "<hr><b><p align='center'> Host" + 
-                     "level recommendations </p>" +
+                     "-level recommendations </p>" +
                      "at " + json.timestamp + "</b><br><hr>";
                  output3  = output3 + json.message + "<br>";
                  $('#data2').append(output3);
@@ -102,8 +102,8 @@
       <h1>Openstack Monitor</h1> (page refreshes every 30 seconds)
     </header>   
     <div class="page-wrapper">
-        <div class="supporting" id="data1"></div>
-        <div class="page-side" id="data2"></div>
+        <div class="supporting" id="data2"></div>
+        <div class="page-side" id="data1"></div>
     </div>
         <div 'clear:both'>&nbsp;</div>
      </div>

@@ -112,7 +112,7 @@ The instances are managed by the nova compute service.
 		\textbf{Limitations}:
 		\begin{itemize}
 			\item
-			Proprietary software and it's premium services are charged. 
+			Proprietary software and its premium services are charged. 
 			\item
 			Doesn't support open source cloud platforms, for example: Openstack.
 		\end{itemize}
@@ -165,7 +165,7 @@ The performance metrics that we have decided to use to provide resource utilizat
 \item Average disk input/output
 \end{itemize}	
 
-Our aim was to analyze the above metrics and warn the user when say, the CPU utilization becomes greater than 90 \% which in turn means he needs to move the VM elsewhere or he can increase the resource allocated to the VM.
+Our aim was to analyze the above metrics and warn the user when say, the host CPU utilization becomes greater than 90 \% which in turn means he needs to move the VM elsewhere or he can increase the resource allocated to the VM.
 
 We also provide recommendations for the user to move the VMs elsewhere by creating a new compute node if we believe that the machine is overburdened. We come up with this recommendation by looking at the host level statistics. We look at the CPU and memory statistics of the host machine. 
 

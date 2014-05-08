@@ -1,4 +1,4 @@
-openstack-monitor
+Openstack Monitor
 =================
 Cloud computing platforms are complex systems with many VMs which in turn
 run different applications. Since applications have varying needs, different VMs
@@ -10,6 +10,7 @@ The project involves setting up OpenStack on two nodes, setting up hypervisors a
 virtual machines and then writing a tool that uses the OpenStack API as well as
 the hypervisor API to gather various statistics that are then analyzed to provide
 recommendations.
+
 In this project we focus on monitoring the statistics based on which we provide re-
 source utilization recommendations.The hypervisor that is being used here is KVM.
 Alerts are provided to the user when any high utilization or low utilization thresholds

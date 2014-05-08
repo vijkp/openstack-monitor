@@ -1,2 +1,19 @@
 openstack-monitor
 =================
+Cloud computing platforms are complex systems with many VMs which in turn
+run different applications. Since applications have varying needs, different VMs
+are configured differently. The goal of this project is to write a simple tool that
+is inspired by Amazon Trusted Advisor that is used in Amazon’s EC2 cloud to
+continuously monitor a cloud deployment and make recommendations on how to
+improve security, resource usage, etc for various VMs by analyzing the hypervisor.
+The project involves setting up OpenStack on two nodes, setting up hypervisors and
+virtual machines and then writing a tool that uses the OpenStack API as well as
+the hypervisor API to gather various statistics that are then analyzed to provide
+recommendations.
+In this project we focus on monitoring the statistics based on which we provide re-
+source utilization recommendations.The hypervisor that is being used here is KVM.
+Alerts are provided to the user when any high utilization or low utilization thresholds
+are hit. Recommendations are provided to the user to move machines to different
+nodes if the performance of the setup as a whole improves as a result of VM migra-
+tion.
+

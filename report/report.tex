@@ -40,7 +40,7 @@ hypervisors and virtual machines and then writing a tool that uses the
 OpenStack API as well as the hypervisor API to gather various
 statistics that are then analyzed to provide recommendations.
 
-In this project we focus on monitoring the statistics based on which we provide resource utilization recommendations.The hypervisor that is being used here is KVM.
+In this project we focus on monitoring the statistics based on which we provide resource utilization recommendations.The hypervisor that is being used here is KVM. Alerts are provided to the user when any high utilization or low utilization thresholds are hit. Recommendations are provided to the user to move machines to different nodes if the performance of the setup as a whole improves as a result of VM migration.
 
 \chapter{Openstack setup}
 Openstack\cite{openstack} is a cloud management platform where in there is a controller node and a compute node.
@@ -59,9 +59,17 @@ We have one controller node and one compute node and the following open stack se
 The messaging between the various open stack services is done using RabbitMQ.
 
 Our open stack architecture is configured the following way:
-\begin{center}
-\includegraphics[scale = 0.75]{basic-architecture}
-\end{center}
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.75]{basic-architecture}	
+\caption{Open stack architecture}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{openstack}	
+\caption{Open stack architecture}
+\end{figure}
 
 After configuring the controller and the compute node a network was setup between them. We have launched various instances of Ubuntu on our compute node. Currently we having the following VMs running in our compute node
 \scriptsize
@@ -157,6 +165,8 @@ The performance metrics that we have decided to use to provide resource utilizat
 
 Our aim was to analyze the above metrics and warn the user when say, the CPU utilization becomes greater than 90 \% which in turn means he needs to move the VM elsewhere or he can increase the resource allocated to the VM.
 
+We also provide recommendations for the user to move the VMs elsewhere by creating a new compute node if we believe that the machine is overburdened. We come up with this recommendation by looking at the host level statistics. We look at the CPU and memory statistics of the host machine. 
+
 \section{Design and Implementation}
 On a high level there is daemon which runs every five seconds to query the statistics from the hypervisor and this data is stored in Round Robin databases\cite{rrdindex}. There is another daemon which reads the data from the round robin files, provides recommendations and stores it as JSON files which is shown on the web interface which is updated every minute. 
 	
@@ -165,9 +175,10 @@ The various statistics that are required by our system to provide recommendation
 \begin{itemize}
 \item \textbf{virt-top:} virt-top \cite{virttop} is similar to the unix functionality 'top' which provides data regarding the CPU, network and memory utilization of the processes in the system. Virt-top however looks at hypervisor level information and provides data that is specific to the virtual instances in the machine. The output of virt-top was streamed and statistics about the CPU, memory, disk-IO and network utilization of the VMs was collected.
 \item \textbf{virt-df:} Virt-df \cite{virtdf}is similar to the unix functionality 'df' which lists the disks that are mounted and the used and available space in a disk. Virt-df looks into the various virtual machines and reports the storage space that is in use and that is available. Thus, disk utilization was collected.
+\item \textbf{top:} This unix functionality is exploited to get host level statistics from the machine. This helps in providing host level recommendations to the system.
 \end{itemize}
 
-A daemon runs every five seconds and captures the data from the above libvirt modules and stores the data in Round robin database files.
+A daemon runs every five seconds and captures the data from the above modules and stores the data in Round robin database files.
 
 \subsection{Storing in RRD files}
 The main motivation behind using Round robin databases was because the RRDtool can manage time-series data effectively, won't grow infinitely in size because of the round robin nature of the database and was also easily integrable with python. RRDtool can be configured to calculate the rate of change from the previous to the current value and store this information instead.
@@ -236,7 +247,7 @@ A simple python HTTP server is currently running in the compute node of the open
 		\item
 		Total hosts used: 2 (1 compute node and 1 controller node)
 		\item
-		Virtual machines: 9 VMs with Ubuntu 12.04 created with flavor \textit{m1.small} (1 VCPU, 2GB memory)
+		Virtual machines: 9 VMs with Ubuntu 12.04 created with flavor \textit{m1.small} (1 VCPU, 2GB memory), 1 VM with Ubuntu 12.04 created with flavor \textit{m1.medium}
 	\end{enumerate}
 	\section{Test cases} 
 	Random loads are generated in all virtual machines using lookbusy \cite{lookbusy}, a synthetic load generator for linux systems. The following are the scenarios that we simulate:
@@ -245,6 +256,7 @@ A simple python HTTP server is currently running in the compute node of the open
 	\item Memory stress: The VM memory is filled upto 1.4GB randomly for upto 2 hours.
 	\item Disk I/O stress: The VM disk is churned with file sizes upto 32MB randomly for upto 2 hours.
 	\end{itemize}
+	We randomly invoke anyone of the above scenarios continuously on all the VMs. This ensures that there is always some stressing that's happening on the machine and this is done to simulate how a VM would actually be used and this also ensures that the data we are collecting has highs and lows.
 		
 		
 \chapter{Results} 
@@ -299,7 +311,9 @@ The CPU utilization is almost negligible for instance 27 which is captured below
 \end{figure}
 
 \chapter{Conclusion}
-We were able to read the various statistics like CPU utilization, memory utilization, network bandwidth utilization, and disk utilization of the virtual machines in the openstack compute node by querying the KVM hypervisor using libvirt APIs. We were able to process the data collected and provide recommendations to the user/open stack administrator to take appropriate actions regarding the virtual machine configuration.\\
+We were able to read the various statistics like CPU utilization, memory utilization, network bandwidth utilization, and disk utilization of the virtual machines in the openstack compute node by querying the KVM hypervisor using libvirt APIs. We were able to process the data collected and provide recommendations to the user/open stack administrator to take appropriate actions regarding the virtual machine configuration. We were also able to collect statistics of the host machine (compute node) and provide the user recommendations based on that.
+
+\\
 \\
 This monitoring system can be extended to record various other statistics of the virtual machines in order to build a full fledged open source equivalent of the Amazon Trusted Advisor. 
 

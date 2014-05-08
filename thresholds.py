@@ -3,7 +3,7 @@
 # recommendations and their definitions
 
 """ cpu utilization """
-avg_cpu_1w_upperlimit = 80  # 80%, to recommend user to upgrade hardware 
+avg_cpu_1w_upperlimit = 70  # 80%, to recommend user to upgrade hardware 
 avg_cpu_1w_lowerlimit = 20  # 20%, to alert user about resource under utilization
 
 avg_cpu_30min_upperlimit = 90  # 90%, Alert user about high CPU utilization 

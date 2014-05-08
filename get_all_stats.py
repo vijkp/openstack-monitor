@@ -6,6 +6,7 @@ import thread
 import threading
 from collect_virt_top_data import collect_virt_top_data
 from disk_stats import collect_disk_stats 
+from collect_host_stats import collect_host_stats
 
 class diskThread (threading.Thread):
     def __init__(self):
@@ -23,13 +24,23 @@ class cpuThread (threading.Thread):
         collect_virt_top_data()
         print "Exiting cpu "
 
+class hostThread (threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+    def run(self):
+        print "Starting host stat collection"
+        collect_host_stats()
+        print "Exiting host stat colelction "
+
 #Create threads
 disk_thread = diskThread()
 cpu_thread = cpuThread()
+host_thread = hostThread()
 
 #Run threads
 disk_thread.start()
 cpu_thread.start()
+host_thread.start()
 
 
 

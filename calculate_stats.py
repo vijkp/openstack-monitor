@@ -22,6 +22,8 @@ stat_types = ["cpu", "mem", "disk_io", "disk", "net_io"]
 instance_list = []
 metrics_table = {}  # stores pointers to avg_stats and avg_minmax_stats for each inst, stype, mt
 stype_metrics = {}  # stores stype to stype metrics list
+host_cpu = {}
+host_mem = {}
 stype_metrics["cpu"] = ["cpu_percent"]
 stype_metrics["mem"] = ["mem_percent"]
 stype_metrics["disk_io"] = ["read_queue", "write_queue"]
@@ -65,6 +67,27 @@ def get_instance_list():
 def fetch_value(instance_name, stype, cfg, starttime, resolution):
     cmd = "rrdtool fetch {}_{}_stats.rrd {} -s {} -r {}".format(instance_name, 
             stype, cfg, starttime, resolution)
+    output = subprocess.check_output(cmd, shell=True)
+    current_ts = int(time.time())
+    lines = output.split('\n')
+    lineslen = len(lines)
+    lineindex = lineslen - 1
+    while lineindex >= 0:
+        index =  lines[lineindex].find(':')
+        if index != -1:
+            timestamp = int(lines[lineindex][:index])
+            if (current_ts - timestamp) <= 2*int(resolution):
+                outvalues = lines[lineindex].split()
+                if ('-nan' in outvalues) or ('nan' in outvalues):
+                    lineindex -= 1
+                    continue
+                return outvalues[1:]
+                break
+        lineindex -= 1
+
+def fetch_host_value(stype, starttime, resolution):
+    cmd = "rrdtool fetch host_{}_stats.rrd AVERAGE -s {} -r {}".format(stype, 
+            starttime, resolution)
     output = subprocess.check_output(cmd, shell=True)
     current_ts = int(time.time())
     lines = output.split('\n')
@@ -135,6 +158,62 @@ def fetch_and_update_stats():
     #for key, value in metrics_table.iteritems():
     #    print key, value.instance_name, value.stype, value.stype_m, value.avg_5s, value.avg_2hr, value.avg_1hr, value.avg_1d, value.avg_12hr, value.avg_1w
 
+def update_host_stats(stype, duration, values):
+    global host_cpu
+    global host_mem
+    if values == None:
+        return
+    values = map(float, values)
+    if stype == "cpu":
+        host_cpu.update(duration, values[0])
+    elif stype == "mem":
+        host_mem.update(duration, values[0])
+
+def fetch_and_update_host_stats():
+    global host_cpu
+    global host_mem
+    host_cpu = st.avg_host_stats()
+    host_mem = st.avg_host_stats()
+    
+    update_host_stats("cpu", "5s", fetch_host_value("cpu", "-10s", "5"))
+    update_host_stats("cpu", "1hr", fetch_host_value("cpu", "-2hr", "3600"))
+    update_host_stats("cpu", "2hr", fetch_host_value("cpu", "-4hr", "7200"))
+    update_host_stats("cpu", "12hr", fetch_host_value("cpu", "-14hr", "43200"))
+    update_host_stats("cpu", "1d", fetch_host_value("cpu", "-2d", "86400"))
+    update_host_stats("cpu", "1w",fetch_host_value("cpu", "-2w", "604800"))
+
+    update_host_stats("mem", "5s", fetch_host_value("mem", "-10s", "5"))
+    update_host_stats("mem", "1hr", fetch_host_value("mem", "-2hr", "3600"))
+    update_host_stats("mem", "2hr", fetch_host_value("mem", "-4hr", "7200"))
+    update_host_stats("mem", "12hr", fetch_host_value("mem", "-14hr", "43200"))
+    update_host_stats("mem", "1d", fetch_host_value("mem", "-2d", "86400"))
+    update_host_stats("mem", "1w",fetch_host_value("mem", "-2w", "604800"))
+
+def generate_host_recommendations(ctime):
+    message = "Nothing"
+    host_cpu_percent = host_cpu.avg_5s
+
+    if host_cpu_percent > th.max_host_vm_util:
+        vm_max_cpu = 0
+        max_inst = ""
+        #Deal with CPU
+        for inst in instance_list:
+            if (metrics_table[inst, "cpu", "cpu_percent"].avg_5s > vm_max_cpu):
+                vm_max_cpu = metrics_table[inst, "cpu", "cpu_percent"].avg_5s
+                max_inst = inst;
+        
+        message = "Instance: " + max_inst + " is taking up most of the Host CPU. Request you to move it."
+
+        #Write to JSON
+        host_json_file = open("../web/host_level_stats.json","w")
+        jsonfinal = {}
+        jsonfinal.clear()
+        jsonfinal["timestamp"] = ctime.strftime("%Y-%m-%d %H:%M:%S")
+        jsonfinal["message"] = message
+
+        inst_json = json.JSONEncoder().encode(jsonfinal)
+        host_json_file.write(inst_json + "\n")
+        host_json_file.close()
 
 def generate_recommendations(ctime):
     # for each instance 
@@ -264,9 +343,11 @@ def main():
 
         # fetch values from rrd files
         fetch_and_update_stats()
+        fetch_and_update_host_stats()
 
         # generate recos
         generate_recommendations(time_now)
+        generate_host_recommendations(time_now)
 
         current_ts = int(time.time())
         tdiff = (current_ts - ref_ts)%calc_interval

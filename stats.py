@@ -41,6 +41,28 @@ class avg_stats:
         elif duration == "1w":
             self.avg_1w = value
 
+class avg_host_stats:
+    def __init__(self):
+        self.avg_5s = 0.0
+        self.avg_1hr = 0.0
+        self.avg_2hr = 0.0
+        self.avg_12hr = 0.0
+        self.avg_1d = 0.0
+        self.avg_1w = 0.0
+    def update(self, duration, value):
+        if duration == "5s":
+            self.avg_5s = value
+        elif duration == "1hr":
+            self.avg_1hr = value
+        elif duration == "2hr":
+            self.avg_2hr = value
+        elif duration == "12hr":
+            self.avg_12hr = value
+        elif duration == "1d":
+            self.avg_1d = value
+        elif duration == "1w":
+            self.avg_1w = value
+
 class avg_maxmin_stats:
     def __init__(self, sname, stype, stype_m):
         self.instance_name = sname

@@ -64,18 +64,34 @@
             
             }
             $.ajax({
+                url: "host_level_stats.json",
+                dataType: "text",
+                success: function(data) {
+                 var json = $.parseJSON(data);
+                 var output3 = "<hr><b><p align='center'> Host" + 
+                     "level recommendations </p>" +
+                     "at " + json.timestamp + "</b><br><hr>";
+                 output3  = output3 + json.message + "<br>";
+                 $('#data2').append(output3);
+             }
+         });
+
+            $.ajax({
                 url: "host_inst.json",
                 dataType: "text",
                 success: function(data) {
                     var output2 = "<hr><b><p align='center'> Host and VM list </p><hr></b>";
                  var json = $.parseJSON(data);
-                 output2  = output2  + "<b>"+json.hostname + "</b><br>";
+                 output2  = output2  + "<b>Compute Node: "+json.hostname + "</b><br>";
+                 var count = 1
                     for (var ins in json.instances) { 
-                        output2  = output2 + json.instances[ins] + "<br>"; 
+                        output2  = output2 + "VM" + count +": "  + json.instances[ins] + "<br>";
+                        count = count + 1;
                     }
                     $('#data2').append(output2);
                 }
             });
+
         });
         </script>
 
@@ -87,8 +103,8 @@
     </header>   
     <div class="page-wrapper">
         <div class="supporting" id="data1"></div>
-        <div class="page-side" id="data2">
-        </div>
+        <div class="page-side" id="data2"></div>
+    </div>
         <div 'clear:both'>&nbsp;</div>
      </div>
  </div>

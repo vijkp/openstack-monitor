@@ -27,8 +27,8 @@ stype_metrics["mem"] = ["mem_percent"]
 stype_metrics["disk_io"] = ["read_queue", "write_queue"]
 stype_metrics["disk"] = ["size_used", "size_available", "util_percent"]
 stype_metrics["net_io"] = ["rx_bytes", "tx_bytes"]
-calc_interval = 600 
-calc_delay = 20
+calc_interval = 10 
+calc_delay = 3
 file_list = collections.deque([], 10) # list with max length 10
 
 def get_hostname():
@@ -145,10 +145,10 @@ def generate_recommendations(ctime):
         for stype in stat_types:
             message = "no-reco"
             if stype == 'cpu':
-                value = metrics_table[inst, stype, "cpu_percent"].avg_1hr
+                value = metrics_table[inst, stype, "cpu_percent"].avg_5s
                 if(value > th.avg_cpu_1w_upperlimit):
                     level = st.level[1]
-                    message = "High cpu utilization (Average for the past {}: {}%).".format(timemsg, float(round(value, 2)))
+                    message = "High cpu utilization (Average for the past 5 seconds: {}%).".format(float(round(value, 2)))
                 if(value < th.avg_cpu_1w_lowerlimit):
                     level = st.level[0]
                     message = "CPUs under utilized (Average for the past {}: {}%).".format(timemsg, float(round(value, 2)))

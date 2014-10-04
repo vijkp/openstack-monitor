@@ -1,9 +1,10 @@
+#!/usr/bin/python
+
 #   Openstack Monitor
 #   File description:  Classes for storing computed stats
 #   Authors: Vijay P, Sneha S
 #   Email: {vijaykp, snehas}@cs.umass.edu
 
-#!/usr/bin/python
 level = ["low", "medium", "critical"]
 
 class reco:

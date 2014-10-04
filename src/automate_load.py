@@ -1,8 +1,9 @@
+#!/usr/bin/python
+
 #   Openstack Monitor
 #   Authors: Vijay P, Sneha S
 #   Email: {vijaykp, snehas}@cs.umass.edu
 
-#!/usr/bin/python
 import subprocess
 import os
 import random

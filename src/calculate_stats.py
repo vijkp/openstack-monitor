@@ -1,9 +1,9 @@
+#!/usr/bin/python
+
 #   Openstack Monitor
 #   File description: Routines to process collected stats
 #   Authors: Vijay P, Sneha S
 #   Email: {vijaykp, snehas}@cs.umass.edu
-
-#!/usr/bin/python
 
 import time
 import datetime

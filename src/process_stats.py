@@ -1,13 +1,9 @@
+#!/usr/bin/python
+
 #   Openstack Monitor
 #   File description: Process stats collected
 #   Authors: Vijay P, Sneha S
 #   Email: {vijaykp, snehas}@cs.umass.edu
-
-#!/usr/bin/python
-
-"""
-
-"""
 
 import csv
 import glob

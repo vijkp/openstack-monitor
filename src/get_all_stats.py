@@ -1,9 +1,10 @@
+#!/usr/bin/python
+
 #   Openstack Monitor
 #   File description: Collect network tx/rx stats from Virtual Machines
 #   Authors: Vijay P, Sneha S
 #   Email: {vijaykp, snehas}@cs.umass.edu
 
-#!/usr/bin/python
 import subprocess
 import time
 import thread

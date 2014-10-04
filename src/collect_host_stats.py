@@ -1,8 +1,9 @@
-#!/usr/bin/python
+#   Openstack Monitor
+#   File description: Collect host cpu and mem stats
+#   Authors: Vijay P, Sneha S
+#   Email: {vijaykp, snehas}@cs.umass.edu
 
-"""
-Collect host cpu and mem stats
-"""
+#!/usr/bin/python
 import rrdtool
 import libvirt
 import sys

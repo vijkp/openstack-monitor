@@ -1,8 +1,9 @@
-#!/usr/bin/python
+#   Openstack Monitor
+#   File description: Collect network tx/rx stats from Virtual Machines
+#   Authors: Vijay P, Sneha S
+#   Email: {vijaykp, snehas}@cs.umass.edu
 
-"""
-Collect network tx/rx stats from Virtual Machines
-"""
+#!/usr/bin/python
 import rrdtool
 import libvirt
 import sys

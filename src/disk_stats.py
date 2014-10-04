@@ -1,9 +1,10 @@
-#!/usr/bin/python
+#   Openstack Monitor
+#   File description: Routines to extract Disk utilization in VMs
+#   Authors: Vijay P, Sneha S
+#   Email: {vijaykp, snehas}@cs.umass.edu
 
-"""
-Code to extract Disk utilization in VMs
-"""
-import subprocess 
+#!/usr/bin/python
+import subprocess
 import time
 import libvirt
 import rrdtool

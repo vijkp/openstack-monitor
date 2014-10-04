@@ -1,6 +1,9 @@
-#!/usr/bin/python
+#   Openstack Monitor
+#   File description: recommendations' definitions
+#   Authors: Vijay P, Sneha S
+#   Email: {vijaykp, snehas}@cs.umass.edu
 
-# recommendations and their definitions
+#!/usr/bin/python
 
 """ cpu utilization """
 avg_cpu_1w_upperlimit = 70  # 80%, to recommend user to upgrade hardware 

@@ -1,9 +1,9 @@
+#   Openstack Monitor
+#   File description: Extract CPU utilization percentage
+#   Authors: Vijay P, Sneha S
+#   Email: {vijaykp, snehas}@cs.umass.edu
+
 #!/usr/bin/python
-
-"""
-Code to extract CPU utilization percentage
-"""
-
 import libvirt
 import sys
 import os
